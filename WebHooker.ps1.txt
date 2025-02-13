@@ -1,0 +1,76 @@
+﻿# Get the current directory where the script is running
+$currentDirectory = Get-Location
+
+# Specify the file name (assuming the file is in the same directory as the script)
+$filePath = Join-Path -Path $currentDirectory -ChildPath "webhook.config"
+
+# Read the content of the file
+$fileContent = Get-Content -Path $filePath
+
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+
+# Create the form
+$form = New-Object System.Windows.Forms.Form
+$form.Text = "Create-AzUser"
+$form.Size = New-Object System.Drawing.Size(800, 600)
+$form.StartPosition = "CenterScreen"
+
+# Create labels and textboxes for inputs
+$labels = @("Name", "Surname", "Department", "EmployeeID")
+$yPos = 20
+foreach ($label in $labels) {
+    $lbl = New-Object System.Windows.Forms.Label
+    $lbl.Text = $label
+    $lbl.Font = New-Object System.Drawing.Font("Arial", 12)
+    $lbl.Size = New-Object System.Drawing.Size(200, 30)
+    $lbl.Location = New-Object System.Drawing.Point(10, $yPos)
+    $form.Controls.Add($lbl)
+
+    if ($label -eq "Department") {
+        $txtBox = New-Object System.Windows.Forms.ComboBox
+        $txtBox.Name = $label
+        $txtBox.Font = New-Object System.Drawing.Font("Arial", 24)
+        $txtBox.Size = New-Object System.Drawing.Size(500, 120)
+        $txtBox.Location = New-Object System.Drawing.Point(240, $yPos)
+        $txtBox.AutoCompleteMode = [System.Windows.Forms.AutoCompleteMode]::SuggestAppend
+        $txtBox.AutoCompleteSource = [System.Windows.Forms.AutoCompleteSource]::ListItems
+        $txtBox.Items.AddRange(@("IT Department", "HR", "Marketing", "Accounting", "Sales"))
+    } else {
+        $txtBox = New-Object System.Windows.Forms.TextBox
+        $txtBox.Name = $label
+        $txtBox.Font = New-Object System.Drawing.Font("Arial", 24)
+        $txtBox.Size = New-Object System.Drawing.Size(500, 120)
+        $txtBox.Location = New-Object System.Drawing.Point(240, $yPos)
+    }
+    $form.Controls.Add($txtBox)
+
+    $yPos += 100
+}
+
+# Create the submit button
+$submitButton = New-Object System.Windows.Forms.Button
+$submitButton.Text = "Create User"
+$submitButton.Font = New-Object System.Drawing.Font("Arial", 16)
+$submitButton.Size = New-Object System.Drawing.Size(360, 120)
+$submitButton.Location = New-Object System.Drawing.Point(150, $yPos)
+$submitButton.Add_Click({
+    $inputs = @{
+        Name       = $form.Controls["Name"].Text
+        Surname    = $form.Controls["Surname"].Text
+        Department = $form.Controls["Department"].Text
+        EmployeeID = $form.Controls["EmployeeID"].Text
+    }
+
+    $body = ConvertTo-Json -InputObject $inputs
+    $webhookURI = "$fileContent"
+    $response = Invoke-WebRequest -Method Post -Uri $webhookURI -Body $body -UseBasicParsing
+
+    [System.Windows.Forms.MessageBox]::Show("Response: $($response.StatusCode)")
+})
+
+$form.Controls.Add($submitButton)
+
+# Show the form
+$form.Add_Shown({ $form.Activate() })
+[void] $form.ShowDialog()
