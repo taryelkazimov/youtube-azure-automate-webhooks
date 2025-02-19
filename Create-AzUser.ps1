@@ -15,7 +15,7 @@ Write-Output $bodyData
 # Key Vaulta qoşulan istifadəçi Managed İdentity hesabıdır. Key Vaulta ona Get yetkisinin verilməsi yetərlidir.
 
 ### KEY VAULT ADINI VE DAXILINDE YARATDIGIMIZ SECRET ADLARINI TEYIN EDIRIK. ###
-$vaultName = "Create-AzUser1"
+$vaultName = "Azure KeyVault Name"
 $ClientSecretName  = "ClientSecret"
 $ClientIDSecretName = "ClientId"
 $TenantIdSecretName = "TenantId"
